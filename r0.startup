@@ -1,0 +1,47 @@
+ip addr add 192.168.1.254/24 dev eth0
+ip addr add 172.16.5.253/24 dev eth1
+
+ip route add default via 172.16.5.254 dev eth1
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
+
+apt update
+apt search isc-dhcp-server
+apt install -y isc-dhcp-server
+
+
+
+echo "subnet 192.168.1.0 netmask 255.255.255.0 {" >> /etc/dhcp/dhcpd.conf
+echo "range 192.168.1.1 192.168.1.100;" >> /etc/dhcp/dhcpd.conf
+echo "option routers 192.168.1.254;" >> /etc/dhcp/dhcpd.conf
+echo "option domain-name-servers 8.8.8.8;" >> /etc/dhcp/dhcpd.conf
+echo "}" >> /etc/dhcp/dhcpd.conf
+
+
+echo "host pcc{" >> /etc/dhcp/dhcpd.conf
+echo "hardware ethernet a6:55:ff:54:13:fc;" >> /etc/dhcp/dhcpd.conf
+echo "fixed-address 172.16.5.100;" >> /etc/dhcp/dhcpd.conf
+echo "}" >> /etc/dhcp/dhcpd.conf
+
+
+echo "host r1{" >> /etc/dhcp/dhcpd.conf
+echo "hardware ethernet fa:45:05:a0:df:e2;" >> /etc/dhcp/dhcpd.conf
+echo "fixed-address 172.16.5.254;" >> /etc/dhcp/dhcpd.conf
+echo "}" >> /etc/dhcp/dhcpd.conf
+
+
+
+echo "subnet 172.16.5.0 netmask 255.255.255.0 {" >> /etc/dhcp/dhcpd.conf
+echo "range 172.16.5.1 172.16.5.100;" >> /etc/dhcp/dhcpd.conf
+echo "option routers 172.16.5.253;" >> /etc/dhcp/dhcpd.conf
+echo "option domain-name-servers 8.8.8.8;" >> /etc/dhcp/dhcpd.conf
+echo "}" >> /etc/dhcp/dhcpd.conf
+
+
+
+
+echo 'INTERFACESv4="eth0 eth1"' >/etc/default/isc-dhcp-server
+echo 'INTERFACESv6=""' >>/etc/default/isc-dhcp-server
+
+/etc/init.d/isc-dhcp-server start
+
+
